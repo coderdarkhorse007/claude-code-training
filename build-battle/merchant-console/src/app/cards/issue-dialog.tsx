@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { Button } from "@/components/Button"
 import {
   Dialog,
@@ -44,6 +44,11 @@ export function IssueCardDialog() {
   const [revealed, setRevealed] = useState<{ number: string; last4: string } | null>(
     null,
   )
+  // One key per open dialog, not per keystroke or per click — a double
+  // submit of the same attempt reuses it, so the server can recognize the
+  // retry instead of issuing a second card. Doesn't need to be state: it
+  // never drives a render.
+  const idempotencyKey = useRef("")
 
   const reset = () => {
     setNickname("")
@@ -56,7 +61,8 @@ export function IssueCardDialog() {
 
   const handleOpenChange = (next: boolean) => {
     setOpen(next)
-    if (!next) reset()
+    if (next) idempotencyKey.current = crypto.randomUUID()
+    else reset()
   }
 
   const handleMerchantChange = (id: string) => {
@@ -75,7 +81,10 @@ export function IssueCardDialog() {
 
     const res = await fetch("/api/cards", {
       method: "POST",
-      headers: { "content-type": "application/json" },
+      headers: {
+        "content-type": "application/json",
+        "idempotency-key": idempotencyKey.current,
+      },
       body: JSON.stringify({ merchantId, nickname, spendLimit, currency }),
     })
     const body = await res.json()
