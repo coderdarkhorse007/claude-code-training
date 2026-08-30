@@ -1,5 +1,8 @@
+import { generateCardNumber, lastFour } from "@/lib/cards"
 import { merchants } from "./merchants"
 import {
+  Card,
+  CardStatus,
   Currency,
   Dispute,
   Payment,
@@ -42,6 +45,15 @@ const DESCRIPTIONS = [
   "Wholesale invoice",
   "Repeat order",
   "Marketplace order",
+]
+
+const CARD_NICKNAMES = [
+  "Ad spend",
+  "Vendor subscription",
+  "Contractor tools",
+  "SaaS renewals",
+  "Freelancer payouts",
+  "Marketing spend",
 ]
 
 const REASON_CODES = [
@@ -148,7 +160,43 @@ export function generate() {
   }
 
   const payouts = generatePayouts(payments)
-  return { payments, refunds, disputes, payouts }
+  const cards = generateCards()
+  return { payments, refunds, disputes, payouts, cards }
+}
+
+function generateCards(): Card[] {
+  const cards: Card[] = []
+  const CARD_COUNT = 18
+  let seq = 0
+
+  for (let i = 0; i < CARD_COUNT; i++) {
+    const merchant = pick(merchants)
+    // Ticket caps a valid limit at 5,000,000 minor units; seed data stays
+    // inside that range so every seeded card would also pass issuance.
+    const spendLimit = between(50_000, 5_000_000)
+    const spent = Math.min(spendLimit, Math.floor(spendLimit * rand()))
+
+    const statusRoll = rand()
+    const status: CardStatus =
+      statusRoll < 0.78 ? "active" : statusRoll < 0.92 ? "frozen" : "cancelled"
+
+    const createdAt = new Date(GENERATED_AT)
+    createdAt.setUTCDate(createdAt.getUTCDate() - between(1, DAYS))
+
+    cards.push({
+      id: `card_${pad(++seq, 4)}`,
+      merchantId: merchant.id,
+      nickname: pick(CARD_NICKNAMES),
+      last4: lastFour(generateCardNumber(rand)),
+      spendLimit,
+      spent,
+      currency: merchant.currency as Currency,
+      status,
+      createdAt: createdAt.toISOString(),
+    })
+  }
+
+  return cards
 }
 
 function generatePayouts(payments: Payment[]): Payout[] {

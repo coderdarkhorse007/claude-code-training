@@ -11,6 +11,8 @@ export type DisputeStatus = "needs_response" | "under_review" | "won" | "lost"
 
 export type PayoutStatus = "paid" | "in_transit" | "pending"
 
+export type CardStatus = "active" | "frozen" | "cancelled"
+
 export interface Merchant {
   id: string
   name: string
@@ -69,6 +71,30 @@ export interface Payout {
   currency: Currency
   status: PayoutStatus
   paymentIds: string[]
+}
+
+export interface Card {
+  id: string
+  merchantId: string
+  nickname: string
+  /** Last four digits only. The full number is never stored. */
+  last4: string
+  /** Integer minor units. Never a float. */
+  spendLimit: number
+  /** Integer minor units. No live spend flow exists; issued-this-session
+   *  cards start at 0. Seeded cards carry a plausible generated value. */
+  spent: number
+  currency: Currency
+  status: CardStatus
+  /** ISO 8601, always UTC. */
+  createdAt: string
+}
+
+export interface CardIssueInput {
+  merchantId: string
+  nickname: string
+  spendLimit: number
+  currency: Currency
 }
 
 export interface PaymentFilters {
