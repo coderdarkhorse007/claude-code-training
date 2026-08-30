@@ -51,12 +51,12 @@ export function volumeByWeek(count = 12) {
     const sum = (bucket: WeekBucket) =>
       store.payments
         .filter((p) => p.status === "captured" && inWeek(p.createdAt, bucket))
-        .reduce((total, p) => total + p.amount, 0) / 100
+        .reduce((total, p) => total + p.amount, 0)
 
     return {
       date: week.date,
-      "This period": Math.round(sum(week)),
-      "Previous period": Math.round(sum(previous)),
+      "This period": sum(week),
+      "Previous period": sum(previous),
     }
   })
 }
@@ -69,9 +69,7 @@ export function countAndVolumeByWeek(count = 12) {
     return {
       date: week.date,
       Payments: inBucket.length,
-      "Captured volume": Math.round(
-        captured.reduce((total, p) => total + p.amount, 0) / 100,
-      ),
+      "Captured volume": captured.reduce((total, p) => total + p.amount, 0),
     }
   })
 }

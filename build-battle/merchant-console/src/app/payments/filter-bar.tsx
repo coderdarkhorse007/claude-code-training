@@ -52,6 +52,7 @@ export function PaymentsFilterBar({
         <Input
           type="search"
           name="search"
+          aria-label="Search payments"
           value={search}
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Search payments..."

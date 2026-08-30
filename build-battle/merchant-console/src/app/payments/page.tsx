@@ -55,6 +55,12 @@ export default async function PaymentsPage({
 
   return (
     <section aria-label="Payments">
+      <div className="px-4 pt-6 sm:p-6 sm:pb-0">
+        <h1 className="text-lg font-semibold text-gray-900 sm:text-xl dark:text-gray-50">
+          Payments
+        </h1>
+      </div>
+
       <div className="flex flex-col justify-between gap-2 px-4 py-6 sm:flex-row sm:items-center sm:p-6">
         <PaymentsFilterBar
           statuses={STATUSES}

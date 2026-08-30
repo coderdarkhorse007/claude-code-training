@@ -74,6 +74,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarGroupContent>
             <Input
               type="search"
+              aria-label="Search payments"
               placeholder="Search payments..."
               className="[&>input]:sm:py-1.5"
             />

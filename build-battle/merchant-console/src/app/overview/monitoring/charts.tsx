@@ -5,8 +5,10 @@ import { ComboChart } from "@/components/ComboChart"
 import { ConditionalBarChart } from "@/components/ConditionalBarChart"
 import { formatters } from "@/lib/utils"
 
+// Chart data carries minor units, like everywhere else; convert here, once,
+// where the number is actually rendered.
 const money = (value: number) =>
-  formatters.currency({ number: value, maxFractionDigits: 0 })
+  formatters.currency({ number: value / 100, maxFractionDigits: 0 })
 
 export function VolumeByWeek({ data }: { data: Record<string, any>[] }) {
   return (
