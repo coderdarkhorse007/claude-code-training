@@ -180,11 +180,8 @@ export function IssueCardDialog() {
                   <span className="mb-1.5 block font-medium text-gray-900 dark:text-gray-50">
                     Currency
                   </span>
-                  <Select
-                    value={currency}
-                    onValueChange={(value) => setCurrency(value as Currency)}
-                  >
-                    <SelectTrigger aria-label="Currency">
+                  <Select value={currency} disabled>
+                    <SelectTrigger aria-label="Currency, set by the selected merchant">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -195,6 +192,9 @@ export function IssueCardDialog() {
                       ))}
                     </SelectContent>
                   </Select>
+                  <span className="mt-1 block text-xs text-gray-500">
+                    Follows the merchant
+                  </span>
                 </label>
               </div>
 

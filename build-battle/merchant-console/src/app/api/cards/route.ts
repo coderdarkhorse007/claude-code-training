@@ -31,7 +31,8 @@ export async function POST(request: NextRequest) {
     unknown
   >
 
-  if (typeof merchantId !== "string" || !merchantById(merchantId)) {
+  const merchant = typeof merchantId === "string" ? merchantById(merchantId) : undefined
+  if (!merchant) {
     return NextResponse.json({ error: "Select a merchant." }, { status: 400 })
   }
 
@@ -42,6 +43,12 @@ export async function POST(request: NextRequest) {
   if (typeof currency !== "string" || !ALLOWED_CURRENCIES.includes(currency as Currency)) {
     return NextResponse.json(
       { error: "Currency must be USD, EUR, or GBP." },
+      { status: 400 },
+    )
+  }
+  if (currency !== merchant.currency) {
+    return NextResponse.json(
+      { error: `${merchant.name} settles in ${merchant.currency}. A card for them can't be issued in ${currency}.` },
       { status: 400 },
     )
   }
@@ -64,10 +71,10 @@ export async function POST(request: NextRequest) {
   }
 
   const { card, number } = issueCard({
-    merchantId,
+    merchantId: merchant.id,
     nickname: nickname.trim(),
     spendLimit: limit,
-    currency: currency as Currency,
+    currency: merchant.currency,
   })
 
   return NextResponse.json({ card, number }, { status: 201 })
