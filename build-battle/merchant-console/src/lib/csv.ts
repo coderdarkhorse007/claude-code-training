@@ -1,13 +1,13 @@
 import { merchantById } from "@/data/merchants"
-import { Payment } from "@/data/types"
+import { Payment, PaymentStatus } from "@/data/types"
 import { formatMoney } from "./money"
 
 /**
  * CSV export for the payments table.
  *
- * The column set is fixed. Ops has asked for control over it — that is
- * NWP-101 — but today everyone gets every column, including the card
- * last four, whether or not the file is going to a merchant.
+ * Ops chooses the columns and the scope (NWP-101). Card last four is opted
+ * in, not opted out, since a file bound for a merchant used to need manual
+ * cleanup first.
  */
 
 export const EXPORT_COLUMNS = [
@@ -24,6 +24,26 @@ export const EXPORT_COLUMNS = [
 ] as const
 
 export type ExportColumn = (typeof EXPORT_COLUMNS)[number]
+
+/** Every column except last4 — the safe-to-share default. */
+export const DEFAULT_EXPORT_COLUMNS: readonly ExportColumn[] =
+  EXPORT_COLUMNS.filter((column) => column !== "last4")
+
+/**
+ * Column names arrive from the client — request query params, eventually a
+ * dialog's checkbox state. Never trust them past this. `null` (the param was
+ * absent) falls back to the default set; an explicit list, including an
+ * empty one, is filtered to the allowlist and returned in the order given.
+ */
+export function resolveExportColumns(
+  requested: readonly string[] | null,
+): readonly ExportColumn[] {
+  if (requested === null) return DEFAULT_EXPORT_COLUMNS
+  const allowed: readonly string[] = EXPORT_COLUMNS
+  return requested.filter((column): column is ExportColumn =>
+    allowed.includes(column),
+  )
+}
 
 function escapeCell(value: string): string {
   if (/[",\n]/.test(value)) return `"${value.replace(/"/g, '""')}"`
@@ -66,6 +86,15 @@ export function toCsv(
   return [header, ...rows].join("\n")
 }
 
-export function exportFilename(date = new Date()): string {
-  return `payments-${date.toISOString().slice(0, 10)}.csv`
+export function exportFilename(
+  date = new Date(),
+  {
+    scope = "filtered",
+    status = "all",
+  }: { scope?: "filtered" | "all"; status?: PaymentStatus | "all" } = {},
+): string {
+  const day = date.toISOString().slice(0, 10)
+  if (scope === "all") return `payments-all-${day}.csv`
+  if (status !== "all") return `payments-${status}-${day}.csv`
+  return `payments-${day}.csv`
 }
